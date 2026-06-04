@@ -77,7 +77,7 @@ namespace CrossbowOverlayWidget.Services
                 Style = preset.Style,
                 OffsetX = profile?.OffsetX ?? 0,
                 OffsetY = profile?.OffsetY ?? 0,
-                CenterLocked = true
+                CenterLocked = preset.Style.CenterLocked
             };
         }
     }

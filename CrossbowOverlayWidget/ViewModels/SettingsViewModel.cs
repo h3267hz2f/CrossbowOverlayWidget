@@ -124,7 +124,7 @@ namespace CrossbowOverlayWidget.ViewModels
         public int LabelPositionIndex { get => _labelPositionIndex; set { _labelPositionIndex = value; OnPropertyChanged(); ApplyToConfig(); } }
         public bool NightMode { get => _nightMode; set { _nightMode = value; OnPropertyChanged(); ApplyToConfig(); } }
         public double TaperFactor { get => _taperFactor; set { _taperFactor = value; OnPropertyChanged(); ApplyToConfig(); } }
-        public bool CenterLocked { get => _centerLocked; set { _centerLocked = value; OnPropertyChanged(); ConfigChanged?.Invoke(this, EventArgs.Empty); } }
+        public bool CenterLocked { get => _centerLocked; set { _centerLocked = value; OnPropertyChanged(); ApplyToConfig(); } }
         public int CalibPoint1Index { get => _calibPoint1Index; set { _calibPoint1Index = value; OnPropertyChanged(); } }
         public int CalibPoint2Index { get => _calibPoint2Index; set { _calibPoint2Index = value; OnPropertyChanged(); } }
         public int RangeMin { get => _rangeMin; set { _rangeMin = value; OnPropertyChanged(); } }
@@ -155,6 +155,7 @@ namespace CrossbowOverlayWidget.ViewModels
             _labelPositionIndex = (int)preset.Style.TextPosition;
             _nightMode = preset.Style.NightMode;
             _taperFactor = preset.Style.TaperFactor;
+            _centerLocked = preset.Style.CenterLocked;
             NotifyAll();
         }
 
@@ -182,6 +183,7 @@ namespace CrossbowOverlayWidget.ViewModels
             _selectedPreset.Style.TextPosition = (LabelPosition)_labelPositionIndex;
             _selectedPreset.Style.NightMode = _nightMode;
             _selectedPreset.Style.TaperFactor = _taperFactor;
+            _selectedPreset.Style.CenterLocked = _centerLocked;
 
             if (_selectedProfile != null)
             {
@@ -249,6 +251,7 @@ namespace CrossbowOverlayWidget.ViewModels
 
         public async Task RestoreDefaults()
         {
+            if (_selectedPreset == null) return;
             _selectedPreset.Style = new ReticleStyle();
             _selectedPreset.Scale = 1.0;
             _selectedPreset.MarkSpacing = 50;

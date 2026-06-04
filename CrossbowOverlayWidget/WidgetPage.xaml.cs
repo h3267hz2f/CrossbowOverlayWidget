@@ -4,9 +4,11 @@ using CrossbowOverlayWidget.Models;
 using CrossbowOverlayWidget.Rendering;
 using CrossbowOverlayWidget.Services;
 using CrossbowOverlayWidget.ViewModels;
+using Microsoft.Gaming.XboxGameBar;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 
 namespace CrossbowOverlayWidget
 {
@@ -21,9 +23,39 @@ namespace CrossbowOverlayWidget
         private float _animPhase = 0f;
         private bool _hasAnimation = false;
 
+        // Game Bar widget reference for settings activation
+        private XboxGameBarWidget _widget;
+
         public WidgetPage()
         {
             this.InitializeComponent();
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+
+            // Receive the XboxGameBarWidget from App.xaml.cs and hook up settings
+            if (e.Parameter is XboxGameBarWidget widget)
+            {
+                _widget = widget;
+                _widget.SettingsClicked += Widget_SettingsClicked;
+            }
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            if (_widget != null)
+            {
+                _widget.SettingsClicked -= Widget_SettingsClicked;
+            }
+            base.OnNavigatedFrom(e);
+        }
+
+        private async void Widget_SettingsClicked(XboxGameBarWidget sender, object args)
+        {
+            // This activates the settings widget (declared in manifest as CrossbowOverlaySettings)
+            await sender.ActivateSettingsAsync();
         }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)

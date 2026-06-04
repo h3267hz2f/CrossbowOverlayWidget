@@ -33,5 +33,6 @@ namespace CrossbowOverlayWidget.Models
         public bool NightMode { get; set; } = false;
         public double NightDimFactor { get; set; } = 0.4;
         public double TaperFactor { get; set; } = 0;
+        public bool CenterLocked { get; set; } = true;
     }
 }
