@@ -40,7 +40,7 @@ namespace CrossbowOverlayWidget
             if (args.Kind == ActivationKind.Protocol)
             {
                 var protocolArgs = args as IProtocolActivatedEventArgs;
-                if (protocolArgs != null && protocolArgs.Uri.SchemeName == "ms-gamebarwidget")
+                if (protocolArgs != null && protocolArgs.Uri.Scheme == "ms-gamebarwidget")
                 {
                     widgetArgs = args as XboxGameBarWidgetActivatedEventArgs;
                 }

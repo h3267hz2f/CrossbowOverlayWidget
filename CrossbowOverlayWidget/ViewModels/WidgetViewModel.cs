@@ -78,7 +78,14 @@ namespace CrossbowOverlayWidget.ViewModels
             var all = _presetService.GetAll();
             if (all.Count == 0) return;
             var active = _presetService.GetActive();
-            int idx = active != null ? all.IndexOf(active) : -1;
+            int idx = -1;
+            if (active != null)
+            {
+                for (int i = 0; i < all.Count; i++)
+                {
+                    if (all[i].Id == active.Id) { idx = i; break; }
+                }
+            }
             idx = (idx + 1) % all.Count;
             _presetService.ActivatePreset(all[idx].Id);
             Refresh();
@@ -89,7 +96,14 @@ namespace CrossbowOverlayWidget.ViewModels
             var all = _presetService.GetAll();
             if (all.Count == 0) return;
             var active = _presetService.GetActive();
-            int idx = active != null ? all.IndexOf(active) : 0;
+            int idx = 0;
+            if (active != null)
+            {
+                for (int i = 0; i < all.Count; i++)
+                {
+                    if (all[i].Id == active.Id) { idx = i; break; }
+                }
+            }
             idx = (idx - 1 + all.Count) % all.Count;
             _presetService.ActivatePreset(all[idx].Id);
             Refresh();

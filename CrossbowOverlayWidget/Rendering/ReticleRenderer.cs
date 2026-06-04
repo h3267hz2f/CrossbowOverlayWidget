@@ -189,7 +189,7 @@ namespace CrossbowOverlayWidget.Rendering
             {
                 FontFamily = "Consolas",
                 FontSize = fontSize,
-                FontWeight = (isMajor || isSelected) ? FontWeight.Bold : FontWeight.Normal
+                FontWeight = (isMajor || isSelected) ? FontWeights.Bold : FontWeights.Normal
             };
 
             // v2: Label position
@@ -241,7 +241,7 @@ namespace CrossbowOverlayWidget.Rendering
             {
                 FontFamily = "Consolas",
                 FontSize = 11,
-                FontWeight = FontWeight.Normal
+                FontWeight = FontWeights.Normal
             };
             ds.DrawText(status, 10, 10, color, format);
         }
