@@ -36,28 +36,20 @@ jobs:
     - name: Restore NuGet packages
       run: nuget restore ${{ env.SOLUTION_PATH }}
 
-    - name: Generate signing certificate
+    - name: Restore signing certificate from secret
       shell: pwsh
       run: |
         $pfxPath = "${{ github.workspace }}\CrossbowOverlayWidget\CrossbowOverlayWidget_TemporaryKey.pfx"
-        $cerPath = "${{ github.workspace }}\CrossbowOverlayWidget\CrossbowOverlayWidget.cer"
-        if (-not (Test-Path $pfxPath)) {
-          $cert = New-SelfSignedCertificate `
-            -Type CodeSigningCert `
-            -Subject "CN=CrossbowOverlay" `
-            -KeyAlgorithm RSA `
-            -KeyLength 2048 `
-            -HashAlgorithm SHA256 `
-            -CertStoreLocation "Cert:\CurrentUser\My" `
-            -NotAfter (Get-Date).AddYears(10) `
-            -FriendlyName "CrossbowOverlay Code Signing"
+        $b64 = "${{ secrets.SIGNING_CERT_PFX }}"
+        if ($b64 -ne "") {
+          [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($b64))
+          Write-Host "Restored stable signing certificate from secret"
+        } else {
+          Write-Host "WARNING: SIGNING_CERT_PFX secret not set, generating temporary cert"
+          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=CrossbowOverlay" -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -CertStoreLocation "Cert:\CurrentUser\My" -NotAfter (Get-Date).AddYears(10)
           $password = ConvertTo-SecureString -String "CrossbowCI2024" -Force -AsPlainText
           Export-PfxCertificate -Cert $cert -FilePath $pfxPath -Password $password
-          Export-Certificate -Cert $cert -FilePath $cerPath -Type CERT
           Remove-Item -Path $cert.PSPath
-          Write-Host "Generated Code Signing PFX + CER certificate"
-        } else {
-          Write-Host "PFX certificate already exists"
         }
 
     - name: Build MSIX package
@@ -81,14 +73,6 @@ jobs:
           **/AppPackages/**/*.appx
           **/AppPackages/**/*.appxbundle
           **/AppPackages/**/*.msixbundle
-        if-no-files-found: warn
-
-    - name: Upload signing certificate
-      uses: actions/upload-artifact@v4
-      with:
-        name: CrossbowOverlay-Cert
-        path: |
-          **/*.cer
         if-no-files-found: warn
 
     - name: Upload build logs on failure
