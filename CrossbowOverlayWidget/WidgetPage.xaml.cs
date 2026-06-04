@@ -197,7 +197,7 @@ namespace CrossbowOverlayWidget
             };
             _pollTimer.Tick += async (s, e) =>
             {
-                if (await ConfigChangeSignal.CheckAndConsumeAsync())
+                if (ConfigChangeSignal.Check())
                 {
                     // Config was changed by settings widget — reload
                     var config = await _configService.LoadAsync();

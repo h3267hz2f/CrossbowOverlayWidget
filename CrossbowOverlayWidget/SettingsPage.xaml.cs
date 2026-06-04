@@ -59,7 +59,7 @@ namespace CrossbowOverlayWidget
                 try
                 {
                     await _configService.SaveAsync(config);
-                    await Services.ConfigChangeSignal.NotifyAsync();
+                    ConfigChangeSignal.Notify();
                 }
                 catch { /* non-critical */ }
             };

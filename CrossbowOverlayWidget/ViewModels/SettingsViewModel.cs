@@ -201,7 +201,7 @@ namespace CrossbowOverlayWidget.ViewModels
             Presets.Clear();
             foreach (var p in _presetService.GetAll()) Presets.Add(p);
             StatusMessage = "New preset created";
-            _ = ConfigChangeSignal.NotifyAsync();
+            ConfigChangeSignal.Notify();
         }
 
         public void DuplicateSelectedPreset()
@@ -240,7 +240,7 @@ namespace CrossbowOverlayWidget.ViewModels
             Presets.Clear();
             foreach (var p in _presetService.GetAll()) Presets.Add(p);
             StatusMessage = $"Duplicated \"{_selectedPreset.Name}\"";
-            _ = ConfigChangeSignal.NotifyAsync();
+            ConfigChangeSignal.Notify();
         }
 
         public void DeleteSelectedPreset()
@@ -252,7 +252,7 @@ namespace CrossbowOverlayWidget.ViewModels
             _selectedPreset = Presets.FirstOrDefault();
             LoadFromPreset(_selectedPreset);
             StatusMessage = "Preset deleted";
-            _ = ConfigChangeSignal.NotifyAsync();
+            ConfigChangeSignal.Notify();
         }
 
         public void CreateNewProfile()
@@ -277,7 +277,7 @@ namespace CrossbowOverlayWidget.ViewModels
             foreach (var p in _config.Profiles) Profiles.Add(p);
             _selectedProfile = Profiles.FirstOrDefault();
             StatusMessage = $"Profile \"{name}\" deleted";
-            _ = ConfigChangeSignal.NotifyAsync();
+            ConfigChangeSignal.Notify();
         }
 
         public void SwitchProfile()
@@ -287,7 +287,7 @@ namespace CrossbowOverlayWidget.ViewModels
             LoadFromPreset(_presetService.GetActive());
             ConfigChanged?.Invoke(this, EventArgs.Empty);
             StatusMessage = $"Switched to {_selectedProfile.Name}";
-            _ = ConfigChangeSignal.NotifyAsync();
+            ConfigChangeSignal.Notify();
         }
 
         public void ExecuteCalibration()
@@ -305,7 +305,7 @@ namespace CrossbowOverlayWidget.ViewModels
         public async Task SaveConfig()
         {
             await _configService.SaveAsync(_config);
-            await ConfigChangeSignal.NotifyAsync();
+            ConfigChangeSignal.Notify();
             StatusMessage = "Config saved!";
         }
 
@@ -338,7 +338,7 @@ namespace CrossbowOverlayWidget.ViewModels
                 _profileService.Initialize(_config);
                 Initialize(_config);
                 ConfigChanged?.Invoke(this, EventArgs.Empty);
-                await ConfigChangeSignal.NotifyAsync();
+                ConfigChangeSignal.Notify();
                 StatusMessage = "Config imported!";
             }
             else
