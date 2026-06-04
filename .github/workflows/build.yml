@@ -40,18 +40,22 @@ jobs:
       shell: pwsh
       run: |
         $pfxPath = "${{ github.workspace }}\CrossbowOverlayWidget\CrossbowOverlayWidget_TemporaryKey.pfx"
+        $cerPath = "${{ github.workspace }}\CrossbowOverlayWidget\CrossbowOverlayWidget.cer"
         if (-not (Test-Path $pfxPath)) {
           $cert = New-SelfSignedCertificate `
-            -Type Custom `
+            -Type CodeSigningCert `
             -Subject "CN=CrossbowOverlay" `
             -KeyAlgorithm RSA `
             -KeyLength 2048 `
+            -HashAlgorithm SHA256 `
             -CertStoreLocation "Cert:\CurrentUser\My" `
-            -NotAfter (Get-Date).AddYears(5)
-          $password = ConvertTo-SecureString -String "GitHubCI" -Force -AsPlainText
+            -NotAfter (Get-Date).AddYears(10) `
+            -FriendlyName "CrossbowOverlay Code Signing"
+          $password = ConvertTo-SecureString -String "CrossbowCI2024" -Force -AsPlainText
           Export-PfxCertificate -Cert $cert -FilePath $pfxPath -Password $password
+          Export-Certificate -Cert $cert -FilePath $cerPath -Type CERT
           Remove-Item -Path $cert.PSPath
-          Write-Host "Generated new PFX certificate"
+          Write-Host "Generated Code Signing PFX + CER certificate"
         } else {
           Write-Host "PFX certificate already exists"
         }
@@ -64,7 +68,8 @@ jobs:
           /p:AppxBundle=Never `
           /p:AppxPackageDir="AppPackages\" `
           /p:UapAppxPackageBuildMode=StoreUpload `
-          /p:AppxPackageSigningEnabled=false `
+          /p:PackageCertificateKeyFile=CrossbowOverlayWidget_TemporaryKey.pfx `
+          /p:PackageCertificatePassword=CrossbowCI2024 `
           /restore
 
     - name: Upload MSIX artifact
@@ -76,6 +81,14 @@ jobs:
           **/AppPackages/**/*.appx
           **/AppPackages/**/*.appxbundle
           **/AppPackages/**/*.msixbundle
+        if-no-files-found: warn
+
+    - name: Upload signing certificate
+      uses: actions/upload-artifact@v4
+      with:
+        name: CrossbowOverlay-Cert
+        path: |
+          **/*.cer
         if-no-files-found: warn
 
     - name: Upload build logs on failure
