@@ -48,10 +48,16 @@ namespace CrossbowOverlayWidget
 
             if (widgetArgs != null)
             {
+                var rootFrame = Window.Current.Content as Frame;
+
                 if (widgetArgs.IsLaunchActivation)
                 {
-                    var rootFrame = new Frame();
-                    Window.Current.Content = rootFrame;
+                    // First activation - create window and widget
+                    if (rootFrame == null)
+                    {
+                        rootFrame = new Frame();
+                        Window.Current.Content = rootFrame;
+                    }
 
                     if (widgetArgs.AppExtensionId == "CrossbowOverlaySettings")
                     {
@@ -61,6 +67,34 @@ namespace CrossbowOverlayWidget
                     else
                     {
                         _widget = new XboxGameBarWidget(widgetArgs, Window.Current.CoreWindow, rootFrame);
+                        rootFrame.Navigate(typeof(WidgetPage));
+                    }
+
+                    Window.Current.Activate();
+                }
+                else
+                {
+                    // Non-launch activation (e.g. Settings panel opened by Game Bar)
+                    if (rootFrame == null)
+                    {
+                        rootFrame = new Frame();
+                        Window.Current.Content = rootFrame;
+                    }
+
+                    if (widgetArgs.AppExtensionId == "CrossbowOverlaySettings")
+                    {
+                        if (_settingsWidget == null)
+                        {
+                            _settingsWidget = new XboxGameBarWidget(widgetArgs, Window.Current.CoreWindow, rootFrame);
+                        }
+                        rootFrame.Navigate(typeof(SettingsPage));
+                    }
+                    else
+                    {
+                        if (_widget == null)
+                        {
+                            _widget = new XboxGameBarWidget(widgetArgs, Window.Current.CoreWindow, rootFrame);
+                        }
                         rootFrame.Navigate(typeof(WidgetPage));
                     }
 
