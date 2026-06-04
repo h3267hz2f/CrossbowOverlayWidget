@@ -29,5 +29,27 @@ namespace CrossbowOverlayWidget.Rendering
         {
             return Color.FromArgb((byte)(c.A * opacity), c.R, c.G, c.B);
         }
+
+        public static Color InterpolateGradient(Color from, Color to, float t)
+        {
+            t = Math.Max(0, Math.Min(1, t));
+            return Color.FromArgb(
+                (byte)(from.A + (to.A - from.A) * t),
+                (byte)(from.R + (to.R - from.R) * t),
+                (byte)(from.G + (to.G - from.G) * t),
+                (byte)(from.B + (to.B - from.B) * t));
+        }
+
+        public static Color ApplyNightMode(Color c, float dimFactor)
+        {
+            // Dim RGB and add red tint
+            float r = c.R * dimFactor + c.R * 0.1f;
+            float g = c.G * dimFactor * 0.3f;
+            float b = c.B * dimFactor * 0.3f;
+            return Color.FromArgb(c.A,
+                (byte)Math.Min(255, r),
+                (byte)Math.Min(255, g),
+                (byte)Math.Min(255, b));
+        }
     }
 }

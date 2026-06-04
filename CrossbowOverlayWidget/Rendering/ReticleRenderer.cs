@@ -48,25 +48,57 @@ namespace CrossbowOverlayWidget.Rendering
                     break;
             }
 
-            float baseX = canvasWidth / 2 + (float)config.OffsetX;
-            float baseY = canvasHeight / 2 + (float)config.OffsetY;
+            // v2: Center locked — center always at canvas midpoint
+            float baseX, baseY;
+            if (config.CenterLocked)
+            {
+                baseX = canvasWidth / 2;
+                baseY = canvasHeight / 2;
+            }
+            else
+            {
+                baseX = canvasWidth / 2 + (float)config.OffsetX;
+                baseY = canvasHeight / 2 + (float)config.OffsetY;
+            }
 
             int centerIdx = config.Marks.FindIndex(m => m.Distance == 200);
             if (centerIdx < 0) centerIdx = config.Marks.Count / 2;
 
-            // Dashed center line
+            // v2: Center gap
+            float gapHalf = (float)(style.CenterGap * scale / 2);
+            int totalMarks = config.Marks.Count;
+
+            // v2: Gradient colors (precomputed)
+            Color nearColor = ColorHelper.ParseHex(style.NearColor);
+            Color farColor = ColorHelper.ParseHex(style.FarColor);
+
+            // v2: Night mode factor
+            float nightDim = style.NightMode ? (float)style.NightDimFactor : 1.0f;
+
+            // Dashed center line (split when gap > 0)
             if (config.Marks.Count >= 2)
             {
                 float topOff = (float)(config.Marks[0].OffsetY * scale);
                 float botOff = (float)(config.Marks[config.Marks.Count - 1].OffsetY * scale);
-                float topY = baseY - centerIdx * spacing + topOff;
-                float botY = baseY + (config.Marks.Count - 1 - centerIdx) * spacing + botOff;
+                float topY = ComputeMarkY(baseY, 0, centerIdx, spacing, gapHalf, topOff, scale, animScale);
+                float botY = ComputeMarkY(baseY, config.Marks.Count - 1, centerIdx, spacing, gapHalf, botOff, scale, animScale);
 
-                var centerColor = ColorHelper.WithOpacity(
-                    ColorHelper.ParseHex(style.CenterLineColor), animOpacity);
-                ds.DrawLine(baseX, topY - spacing * 0.3f,
-                            baseX, botY + spacing * 0.3f,
-                            centerColor, 1.0f * scale, _dashStyle);
+                var centerColor = ApplyNight(ColorHelper.WithOpacity(
+                    ColorHelper.ParseHex(style.CenterLineColor), animOpacity), nightDim);
+
+                if (gapHalf > 0.5f)
+                {
+                    // Two segments with gap in center
+                    ds.DrawLine(baseX, topY - spacing * 0.3f, baseX, baseY - gapHalf,
+                                centerColor, 1.0f * scale, _dashStyle);
+                    ds.DrawLine(baseX, baseY + gapHalf, baseX, botY + spacing * 0.3f,
+                                centerColor, 1.0f * scale, _dashStyle);
+                }
+                else
+                {
+                    ds.DrawLine(baseX, topY - spacing * 0.3f, baseX, botY + spacing * 0.3f,
+                                centerColor, 1.0f * scale, _dashStyle);
+                }
             }
 
             // Draw marks via shape-specific renderer
@@ -74,18 +106,38 @@ namespace CrossbowOverlayWidget.Rendering
             for (int i = 0; i < config.Marks.Count; i++)
             {
                 var mark = config.Marks[i];
-                float y = baseY + (i - centerIdx) * spacing
-                        + (float)(mark.OffsetY * scale) * animScale;
+                float y = ComputeMarkY(baseY, i, centerIdx, spacing, gapHalf,
+                                        (float)(mark.OffsetY * scale), scale, animScale);
                 bool isMajor = mark.IsMajor;
                 bool isSelected = (i == config.SelectedIndex);
 
+                // v2: Gradient color override
+                Color? colorOverride = null;
+                if (style.GradientColor && totalMarks > 1)
+                {
+                    float t = (float)i / (totalMarks - 1);
+                    colorOverride = ColorHelper.InterpolateGradient(nearColor, farColor, t);
+                }
+
+                // v2: Taper factor per mark (center marks thicker)
+                float distFromCenter = Math.Abs(i - centerIdx);
+                float maxDist = Math.Max(centerIdx, totalMarks - 1 - centerIdx);
+                float taperForMark = maxDist > 0
+                    ? (float)style.TaperFactor * (1f - distFromCenter / maxDist)
+                    : 0f;
+
+                // v2: Night mode applied via colorOverride
+                if (style.NightMode && colorOverride.HasValue)
+                    colorOverride = ApplyNight(colorOverride.Value, nightDim);
+
                 shapeRenderer.DrawMark(ds, baseX, y, isMajor, isSelected,
-                                       style, scale * animScale, animOpacity);
+                                       style, scale * animScale, animOpacity,
+                                       colorOverride, taperForMark);
                 DrawLabel(ds, mark.Label, baseX, y, isSelected, isMajor,
-                          style, scale, animOpacity);
+                          style, scale, animOpacity, i, centerIdx, nightDim);
             }
 
-            // Center reticle
+            // Center reticle (always at baseX, baseY)
             if (style.ShowCenterDiamond && config.DiamondVisible)
             {
                 shapeRenderer.DrawCenterReticle(ds, baseX, baseY, style, scale, animOpacity);
@@ -93,19 +145,45 @@ namespace CrossbowOverlayWidget.Rendering
 
             // Status text (top-left)
             if (config.ShowStatus)
-                DrawStatusText(ds, config, animOpacity);
+                DrawStatusText(ds, config, animOpacity, nightDim);
+        }
+
+        /// <summary>
+        /// Compute Y position for a mark, accounting for center gap.
+        /// </summary>
+        private float ComputeMarkY(float baseY, int i, int centerIdx, float spacing,
+                                    float gapHalf, float offsetY, float scale, float animScale)
+        {
+            float rawY = (i - centerIdx) * spacing + offsetY * animScale;
+            if (gapHalf > 0.5f)
+            {
+                // Push marks away from center
+                if (rawY >= 0) return baseY + gapHalf + rawY;
+                else return baseY - gapHalf + rawY;
+            }
+            return baseY + rawY;
+        }
+
+        private Color ApplyNight(Color c, float nightDim)
+        {
+            if (nightDim >= 1.0f) return c;
+            return ColorHelper.ApplyNightMode(c, nightDim);
         }
 
         private void DrawLabel(CanvasDrawingSession ds, string label,
                                 float baseX, float y, bool isSelected, bool isMajor,
-                                ReticleStyle style, float scale, float opacity)
+                                ReticleStyle style, float scale, float opacity,
+                                int markIndex, int centerIdx, float nightDim)
         {
+            // v2: Hidden labels
+            if (style.TextPosition == LabelPosition.Hidden) return;
+
             float tickLen = (float)((isMajor ? style.MajorTickLength : style.MinorTickLength) * scale);
             float fontSize = (float)(style.FontSize * scale * (isSelected ? 1.2 : 1.0));
 
             string text = isSelected ? $">> {label} <<" : label;
-            var color = ColorHelper.WithOpacity(
-                ColorHelper.ParseHex(isSelected ? "#CCFFFF00" : style.TextColor), opacity);
+            var baseTextColor = ColorHelper.ParseHex(isSelected ? "#CCFFFF00" : style.TextColor);
+            var color = ApplyNight(ColorHelper.WithOpacity(baseTextColor, opacity), nightDim);
 
             var format = new Microsoft.Graphics.Canvas.Text.CanvasTextFormat
             {
@@ -114,10 +192,39 @@ namespace CrossbowOverlayWidget.Rendering
                 FontWeight = (isMajor || isSelected) ? FontWeight.Bold : FontWeight.Normal
             };
 
-            ds.DrawText(text, baseX + tickLen / 2 + 4 * scale, y - fontSize / 2, color, format);
+            // v2: Label position
+            float textX;
+            bool isAlternateRight = (markIndex % 2 == 0);
+
+            switch (style.TextPosition)
+            {
+                case LabelPosition.Left:
+                    textX = baseX - tickLen / 2 - MeasureTextWidth(ds, text, format) - 4 * scale;
+                    break;
+                case LabelPosition.Alternate:
+                    if (isAlternateRight)
+                        textX = baseX + tickLen / 2 + 4 * scale;
+                    else
+                        textX = baseX - tickLen / 2 - MeasureTextWidth(ds, text, format) - 4 * scale;
+                    break;
+                case LabelPosition.Right:
+                default:
+                    textX = baseX + tickLen / 2 + 4 * scale;
+                    break;
+            }
+
+            ds.DrawText(text, textX, y - fontSize / 2, color, format);
         }
 
-        private void DrawStatusText(CanvasDrawingSession ds, ReticleConfig config, float opacity)
+        private float MeasureTextWidth(CanvasDrawingSession ds, string text,
+                                      Microsoft.Graphics.Canvas.Text.CanvasTextFormat format)
+        {
+            // Approximate: each character ≈ fontSize * 0.6 for Consolas
+            return (float)(text.Length * format.FontSize * 0.62);
+        }
+
+        private void DrawStatusText(CanvasDrawingSession ds, ReticleConfig config,
+                                     float opacity, float nightDim)
         {
             string status = $"[CrossbowOverlay] Scale:{config.Scale:F2} Spacing:{(int)config.MarkSpacing}px\n"
                           + $"Offset: ({(int)config.OffsetX}, {(int)config.OffsetY})";
@@ -128,7 +235,8 @@ namespace CrossbowOverlayWidget.Rendering
                 status += $"\n>> Selected: {sm.Label} (OffsetY: {sm.OffsetY:F1})";
             }
 
-            var color = ColorHelper.WithOpacity(ColorHelper.ParseHex("#AAFFFFFF"), opacity);
+            var baseColor = ColorHelper.ParseHex("#AAFFFFFF");
+            var color = ApplyNight(ColorHelper.WithOpacity(baseColor, opacity), nightDim);
             var format = new Microsoft.Graphics.Canvas.Text.CanvasTextFormat
             {
                 FontFamily = "Consolas",

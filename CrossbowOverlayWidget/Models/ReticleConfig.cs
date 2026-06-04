@@ -10,6 +10,7 @@ namespace CrossbowOverlayWidget.Models
         public double MarkSpacing { get; set; } = 50;
         public bool IsVisible { get; set; } = true;
         public bool ShowStatus { get; set; } = true;
+        public bool CenterLocked { get; set; } = true;
         public bool DiamondVisible { get; set; } = true;
         public int SelectedIndex { get; set; } = -1;
         public int CalibrationRangeMin { get; set; } = 0;

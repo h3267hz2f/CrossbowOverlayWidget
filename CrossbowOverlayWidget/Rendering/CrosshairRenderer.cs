@@ -8,18 +8,23 @@ namespace CrossbowOverlayWidget.Rendering
     {
         public void DrawMark(CanvasDrawingSession ds, float x, float y,
                              bool isMajor, bool isSelected, ReticleStyle style,
-                             float scale, float opacity)
+                             float scale, float opacity,
+                             Color? colorOverride = null, float taperFactor = 0f)
         {
             float tickLen = (float)((isMajor ? style.MajorTickLength : style.MinorTickLength)
                           * scale * (isSelected ? 1.3 : 1.0));
-            float lw = (float)((isMajor ? style.MajorLineWidth : style.MinorLineWidth)
-                     * scale * (isSelected ? 1.5 : 1.0));
+            float baseLw = (float)((isMajor ? style.MajorLineWidth : style.MinorLineWidth)
+                         * scale * (isSelected ? 1.5 : 1.0));
 
-            Color color = ColorHelper.ParseHex(
+            // Taper: widen line near center
+            float lw = baseLw * (1f + taperFactor);
+
+            Color color = colorOverride ?? ColorHelper.ParseHex(
                 isSelected ? "#CCFFFF00"
                 : isMajor ? style.MajorColor : style.MinorColor);
             color = ColorHelper.WithOpacity(color, opacity);
 
+            // Symmetric draw from center
             ds.DrawLine(x - tickLen / 2, y, x + tickLen / 2, y, color, lw);
         }
 

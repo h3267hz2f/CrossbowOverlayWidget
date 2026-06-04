@@ -66,6 +66,7 @@
     <!-- Enums -->
     <Compile Include="Enums\ReticleShape.cs" />
     <Compile Include="Enums\AnimationType.cs" />
+    <Compile Include="Enums\LabelPosition.cs" />
     <!-- Models -->
     <Compile Include="Models\DistanceMark.cs" />
     <Compile Include="Models\ReticleConfig.cs" />

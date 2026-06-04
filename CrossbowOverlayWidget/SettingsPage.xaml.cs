@@ -3,8 +3,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CrossbowOverlayWidget.Enums;
 using CrossbowOverlayWidget.Models;
+using CrossbowOverlayWidget.Rendering;
 using CrossbowOverlayWidget.Services;
 using CrossbowOverlayWidget.ViewModels;
+using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -18,6 +20,7 @@ namespace CrossbowOverlayWidget
         private readonly PresetService _presetService = new PresetService();
         private readonly ProfileService _profileService = new ProfileService();
         private readonly ImportExportService _importExportService = new ImportExportService();
+        private readonly ReticleRenderer _previewRenderer = new ReticleRenderer();
         private SettingsViewModel _viewModel;
         private bool _isUpdating;
 
@@ -35,7 +38,10 @@ namespace CrossbowOverlayWidget
             _viewModel = new SettingsViewModel(
                 _presetService, _profileService, _configService, _importExportService);
             _viewModel.Initialize(config);
-            _viewModel.ConfigChanged += (s, ev) => { };
+            _viewModel.ConfigChanged += (s, ev) =>
+            {
+                PreviewCanvas.Invalidate();
+            };
 
             BindUI();
         }
@@ -52,7 +58,7 @@ namespace CrossbowOverlayWidget
             ProfileCombo.ItemsSource = _viewModel.Profiles;
             ProfileCombo.SelectedItem = _viewModel.SelectedProfile;
 
-            // Shape & Animation combos
+            // Shape & Animation
             ShapeCombo.SelectedIndex = _viewModel.ShapeIndex;
             AnimationCombo.SelectedIndex = _viewModel.AnimationIndex;
             AnimSpeedSlider.Value = _viewModel.AnimationSpeed;
@@ -63,6 +69,12 @@ namespace CrossbowOverlayWidget
             TextColorBox.Text = _viewModel.TextColor;
             CenterColorBox.Text = _viewModel.CenterLineColor;
 
+            // v2: Gradient & Night
+            GradientToggle.IsOn = _viewModel.GradientColor;
+            NearColorBox.Text = _viewModel.NearColor;
+            FarColorBox.Text = _viewModel.FarColor;
+            NightModeToggle.IsOn = _viewModel.NightMode;
+
             // Sliders
             ScaleSlider.Value = _viewModel.Scale;
             SpacingSlider.Value = _viewModel.MarkSpacing;
@@ -72,10 +84,17 @@ namespace CrossbowOverlayWidget
             OffsetXSlider.Value = _viewModel.OffsetX;
             OffsetYSlider.Value = _viewModel.OffsetY;
 
+            // v2: New sliders & toggles
+            CenterGapSlider.Value = _viewModel.CenterGap;
+            TaperSlider.Value = _viewModel.TaperFactor;
+            CenterLockToggle.IsOn = _viewModel.CenterLocked;
+            LabelPositionCombo.SelectedIndex = _viewModel.LabelPositionIndex;
+
             // Calibration combos
             PopulateCalibrationCombos();
 
             _isUpdating = false;
+            PreviewCanvas.Invalidate();
         }
 
         private void PopulateCalibrationCombos()
@@ -92,6 +111,42 @@ namespace CrossbowOverlayWidget
                 Calib2Combo.SelectedIndex = preset.Marks.Count - 1;
             }
         }
+
+        #region Preview Canvas
+
+        private void OnPreviewDraw(CanvasControl sender, CanvasDrawEventArgs args)
+        {
+            var cfg = BuildPreviewConfig();
+            if (cfg == null) return;
+
+            float w = (float)sender.ActualWidth;
+            float h = (float)sender.ActualHeight;
+            _previewRenderer.Draw(args.DrawingSession, cfg, w, h, 0f);
+        }
+
+        private ReticleConfig BuildPreviewConfig()
+        {
+            if (_viewModel?.SelectedPreset == null) return null;
+
+            var preset = _viewModel.SelectedPreset;
+            var profile = _viewModel.SelectedProfile;
+
+            return new ReticleConfig
+            {
+                Scale = preset.Scale,
+                MarkSpacing = preset.MarkSpacing,
+                Marks = new System.Collections.Generic.List<DistanceMark>(preset.Marks),
+                Style = preset.Style,
+                OffsetX = profile?.OffsetX ?? 0,
+                OffsetY = profile?.OffsetY ?? 0,
+                CenterLocked = _viewModel.CenterLocked,
+                IsVisible = true,
+                ShowStatus = false,
+                DiamondVisible = preset.Style.ShowCenterDiamond
+            };
+        }
+
+        #endregion
 
         #region Preset Handlers
 
@@ -130,18 +185,21 @@ namespace CrossbowOverlayWidget
         {
             if (_isUpdating || _viewModel == null) return;
             _viewModel.ShapeIndex = ShapeCombo.SelectedIndex;
+            PreviewCanvas.Invalidate();
         }
 
         private void OnAnimationChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isUpdating || _viewModel == null) return;
             _viewModel.AnimationIndex = AnimationCombo.SelectedIndex;
+            PreviewCanvas.Invalidate();
         }
 
         private void OnAnimSpeedChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
             if (_isUpdating || _viewModel == null) return;
             _viewModel.AnimationSpeed = AnimSpeedSlider.Value;
+            PreviewCanvas.Invalidate();
         }
 
         private void OnColorChanged(object sender, RoutedEventArgs e)
@@ -151,6 +209,7 @@ namespace CrossbowOverlayWidget
             _viewModel.MinorColor = MinorColorBox.Text;
             _viewModel.TextColor = TextColorBox.Text;
             _viewModel.CenterLineColor = CenterColorBox.Text;
+            PreviewCanvas.Invalidate();
         }
 
         private void OnSliderChanged(object sender, RangeBaseValueChangedEventArgs e)
@@ -163,6 +222,46 @@ namespace CrossbowOverlayWidget
             _viewModel.MinorLineWidth = MinorWidthSlider.Value;
             _viewModel.OffsetX = OffsetXSlider.Value;
             _viewModel.OffsetY = OffsetYSlider.Value;
+            _viewModel.CenterGap = CenterGapSlider.Value;
+            _viewModel.TaperFactor = TaperSlider.Value;
+            PreviewCanvas.Invalidate();
+        }
+
+        // v2: Gradient handlers
+        private void OnGradientToggled(object sender, RoutedEventArgs e)
+        {
+            if (_isUpdating || _viewModel == null) return;
+            _viewModel.GradientColor = GradientToggle.IsOn;
+            PreviewCanvas.Invalidate();
+        }
+
+        private void OnGradientColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isUpdating || _viewModel == null) return;
+            _viewModel.NearColor = NearColorBox.Text;
+            _viewModel.FarColor = FarColorBox.Text;
+            PreviewCanvas.Invalidate();
+        }
+
+        private void OnNightModeToggled(object sender, RoutedEventArgs e)
+        {
+            if (_isUpdating || _viewModel == null) return;
+            _viewModel.NightMode = NightModeToggle.IsOn;
+            PreviewCanvas.Invalidate();
+        }
+
+        private void OnCenterLockToggled(object sender, RoutedEventArgs e)
+        {
+            if (_isUpdating || _viewModel == null) return;
+            _viewModel.CenterLocked = CenterLockToggle.IsOn;
+            PreviewCanvas.Invalidate();
+        }
+
+        private void OnLabelPositionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isUpdating || _viewModel == null) return;
+            _viewModel.LabelPositionIndex = LabelPositionCombo.SelectedIndex;
+            PreviewCanvas.Invalidate();
         }
 
         private void RefreshStyleUI()
@@ -178,6 +277,11 @@ namespace CrossbowOverlayWidget
             TextColorBox.Text = _viewModel.TextColor;
             CenterColorBox.Text = _viewModel.CenterLineColor;
 
+            GradientToggle.IsOn = _viewModel.GradientColor;
+            NearColorBox.Text = _viewModel.NearColor;
+            FarColorBox.Text = _viewModel.FarColor;
+            NightModeToggle.IsOn = _viewModel.NightMode;
+
             ScaleSlider.Value = _viewModel.Scale;
             SpacingSlider.Value = _viewModel.MarkSpacing;
             OpacitySlider.Value = _viewModel.Opacity;
@@ -186,7 +290,13 @@ namespace CrossbowOverlayWidget
             OffsetXSlider.Value = _viewModel.OffsetX;
             OffsetYSlider.Value = _viewModel.OffsetY;
 
+            CenterGapSlider.Value = _viewModel.CenterGap;
+            TaperSlider.Value = _viewModel.TaperFactor;
+            CenterLockToggle.IsOn = _viewModel.CenterLocked;
+            LabelPositionCombo.SelectedIndex = _viewModel.LabelPositionIndex;
+
             _isUpdating = false;
+            PreviewCanvas.Invalidate();
         }
 
         #endregion
@@ -222,6 +332,7 @@ namespace CrossbowOverlayWidget
 
             PopulateCalibrationCombos();
             ShowStatus(_viewModel.StatusMessage, false);
+            PreviewCanvas.Invalidate();
         }
 
         private async void OnRestoreClick(object sender, RoutedEventArgs e)
@@ -286,7 +397,6 @@ namespace CrossbowOverlayWidget
         private async void OnImportClick(object sender, RoutedEventArgs e)
         {
             await _viewModel.ImportConfig();
-            // Re-bind everything after import
             PresetCombo.ItemsSource = _viewModel.Presets;
             PresetCombo.SelectedItem = _viewModel.SelectedPreset;
             ProfileCombo.ItemsSource = _viewModel.Profiles;
@@ -307,7 +417,6 @@ namespace CrossbowOverlayWidget
                 isError ? Colors.IndianRed : Colors.LightGreen);
             StatusToast.Visibility = Visibility.Visible;
 
-            // Auto-hide after 3 seconds
             var timer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(3)

@@ -38,6 +38,16 @@ namespace CrossbowOverlayWidget.ViewModels
         private double _offsetX = 0;
         private double _offsetY = 0;
 
+        // v2 enhancement fields
+        private double _centerGap = 0;
+        private bool _gradientColor = false;
+        private string _nearColor = "#CC00FF00";
+        private string _farColor = "#CCFF4444";
+        private int _labelPositionIndex = 0;
+        private bool _nightMode = false;
+        private double _taperFactor = 0;
+        private bool _centerLocked = true;
+
         // Calibration
         private int _calibPoint1Index = 0;
         private int _calibPoint2Index = 1;
@@ -105,6 +115,16 @@ namespace CrossbowOverlayWidget.ViewModels
         public double MarkSpacing { get => _markSpacing; set { _markSpacing = value; OnPropertyChanged(); ApplyToConfig(); } }
         public double OffsetX { get => _offsetX; set { _offsetX = value; OnPropertyChanged(); ApplyToConfig(); } }
         public double OffsetY { get => _offsetY; set { _offsetY = value; OnPropertyChanged(); ApplyToConfig(); } }
+
+        // v2 enhancement properties
+        public double CenterGap { get => _centerGap; set { _centerGap = value; OnPropertyChanged(); ApplyToConfig(); } }
+        public bool GradientColor { get => _gradientColor; set { _gradientColor = value; OnPropertyChanged(); ApplyToConfig(); } }
+        public string NearColor { get => _nearColor; set { _nearColor = value; OnPropertyChanged(); ApplyToConfig(); } }
+        public string FarColor { get => _farColor; set { _farColor = value; OnPropertyChanged(); ApplyToConfig(); } }
+        public int LabelPositionIndex { get => _labelPositionIndex; set { _labelPositionIndex = value; OnPropertyChanged(); ApplyToConfig(); } }
+        public bool NightMode { get => _nightMode; set { _nightMode = value; OnPropertyChanged(); ApplyToConfig(); } }
+        public double TaperFactor { get => _taperFactor; set { _taperFactor = value; OnPropertyChanged(); ApplyToConfig(); } }
+        public bool CenterLocked { get => _centerLocked; set { _centerLocked = value; OnPropertyChanged(); ConfigChanged?.Invoke(this, EventArgs.Empty); } }
         public int CalibPoint1Index { get => _calibPoint1Index; set { _calibPoint1Index = value; OnPropertyChanged(); } }
         public int CalibPoint2Index { get => _calibPoint2Index; set { _calibPoint2Index = value; OnPropertyChanged(); } }
         public int RangeMin { get => _rangeMin; set { _rangeMin = value; OnPropertyChanged(); } }
@@ -126,6 +146,15 @@ namespace CrossbowOverlayWidget.ViewModels
             _animationSpeed = preset.Style.AnimationSpeed;
             _scale = preset.Scale;
             _markSpacing = preset.MarkSpacing;
+
+            // v2 fields
+            _centerGap = preset.Style.CenterGap;
+            _gradientColor = preset.Style.GradientColor;
+            _nearColor = preset.Style.NearColor;
+            _farColor = preset.Style.FarColor;
+            _labelPositionIndex = (int)preset.Style.TextPosition;
+            _nightMode = preset.Style.NightMode;
+            _taperFactor = preset.Style.TaperFactor;
             NotifyAll();
         }
 
@@ -144,6 +173,15 @@ namespace CrossbowOverlayWidget.ViewModels
             _selectedPreset.Style.AnimationSpeed = _animationSpeed;
             _selectedPreset.Scale = _scale;
             _selectedPreset.MarkSpacing = _markSpacing;
+
+            // v2 fields
+            _selectedPreset.Style.CenterGap = _centerGap;
+            _selectedPreset.Style.GradientColor = _gradientColor;
+            _selectedPreset.Style.NearColor = _nearColor;
+            _selectedPreset.Style.FarColor = _farColor;
+            _selectedPreset.Style.TextPosition = (LabelPosition)_labelPositionIndex;
+            _selectedPreset.Style.NightMode = _nightMode;
+            _selectedPreset.Style.TaperFactor = _taperFactor;
 
             if (_selectedProfile != null)
             {
@@ -251,7 +289,9 @@ namespace CrossbowOverlayWidget.ViewModels
                 nameof(Opacity), nameof(MajorLineWidth), nameof(MinorLineWidth),
                 nameof(MajorColor), nameof(MinorColor), nameof(TextColor), nameof(CenterLineColor),
                 nameof(ShapeIndex), nameof(AnimationIndex), nameof(AnimationSpeed),
-                nameof(Scale), nameof(MarkSpacing), nameof(OffsetX), nameof(OffsetY)
+                nameof(Scale), nameof(MarkSpacing), nameof(OffsetX), nameof(OffsetY),
+                nameof(CenterGap), nameof(GradientColor), nameof(NearColor), nameof(FarColor),
+                nameof(LabelPositionIndex), nameof(NightMode), nameof(TaperFactor), nameof(CenterLocked)
             })
             {
                 OnPropertyChanged(prop);

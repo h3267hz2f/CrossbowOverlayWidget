@@ -15,7 +15,7 @@ namespace CrossbowOverlayWidget.Models
         public double FontSize { get; set; } = 12;
         public bool ShowCenterDiamond { get; set; } = true;
 
-        // Extended properties
+        // Shape & animation
         public ReticleShape Shape { get; set; } = ReticleShape.Cross;
         public double OverallOpacity { get; set; } = 1.0;
         public AnimationType Animation { get; set; } = AnimationType.None;
@@ -23,5 +23,15 @@ namespace CrossbowOverlayWidget.Models
         public double DotRadius { get; set; } = 3.0;
         public double DiamondSize { get; set; } = 8.0;
         public double CircleRadius { get; set; } = 20.0;
+
+        // v2 enhancements
+        public double CenterGap { get; set; } = 0;
+        public bool GradientColor { get; set; } = false;
+        public string NearColor { get; set; } = "#CC00FF00";
+        public string FarColor { get; set; } = "#CCFF4444";
+        public LabelPosition TextPosition { get; set; } = LabelPosition.Right;
+        public bool NightMode { get; set; } = false;
+        public double NightDimFactor { get; set; } = 0.4;
+        public double TaperFactor { get; set; } = 0;
     }
 }

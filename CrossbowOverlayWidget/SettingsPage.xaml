@@ -6,7 +6,6 @@
       Loaded="Page_Loaded">
 
     <Page.Resources>
-        <!-- Fluent card style with Acrylic -->
         <AcrylicBrush x:Key="CardBrush"
                       BackgroundSource="Backdrop"
                       TintColor="#1A1A2E"
@@ -32,6 +31,17 @@
             <PivotItem Header="样式">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="4" Padding="4">
+
+                        <!-- Live Preview -->
+                        <Border Style="{StaticResource CardPanel}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="实时预览" Style="{StaticResource SectionHeader}"/>
+                                <canvas:CanvasControl x:Name="PreviewCanvas" Height="120"
+                                                      Draw="OnPreviewDraw"
+                                                      ClearColor="#0A000000"
+                                                      CornerRadius="6"/>
+                            </StackPanel>
+                        </Border>
 
                         <!-- Preset selector -->
                         <Border Style="{StaticResource CardPanel}">
@@ -96,6 +106,24 @@
                                          LostFocus="OnColorChanged" PlaceholderText="#CCFFFFFF"/>
                                 <TextBox x:Name="CenterColorBox" Header="中心线颜色"
                                          LostFocus="OnColorChanged" PlaceholderText="#CCFF0000"/>
+
+                                <!-- v2: Gradient color -->
+                                <ToggleSwitch x:Name="GradientToggle"
+                                              Header="距离颜色渐变"
+                                              Toggled="OnGradientToggled"/>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBox x:Name="NearColorBox" Header="近距离颜色"
+                                             Width="130" LostFocus="OnGradientColorChanged"
+                                             PlaceholderText="#CC00FF00"/>
+                                    <TextBox x:Name="FarColorBox" Header="远距离颜色"
+                                             Width="130" LostFocus="OnGradientColorChanged"
+                                             PlaceholderText="#CCFF4444"/>
+                                </StackPanel>
+
+                                <!-- v2: Night mode -->
+                                <ToggleSwitch x:Name="NightModeToggle"
+                                              Header="夜间模式 (暗红)"
+                                              Toggled="OnNightModeToggled"/>
                             </StackPanel>
                         </Border>
 
@@ -124,6 +152,32 @@
                                 <Slider x:Name="OffsetYSlider" Header="垂直偏移"
                                         Minimum="-500" Maximum="500" StepFrequency="1"
                                         ValueChanged="OnSliderChanged"/>
+
+                                <!-- v2: Center gap -->
+                                <Slider x:Name="CenterGapSlider" Header="中心断开间距"
+                                        Minimum="0" Maximum="100" StepFrequency="1"
+                                        ValueChanged="OnSliderChanged"/>
+
+                                <!-- v2: Taper -->
+                                <Slider x:Name="TaperSlider" Header="锥度效果"
+                                        Minimum="0" Maximum="1.0" StepFrequency="0.05"
+                                        ValueChanged="OnSliderChanged"/>
+
+                                <!-- v2: Center lock -->
+                                <ToggleSwitch x:Name="CenterLockToggle"
+                                              Header="准星居中锁定"
+                                              Toggled="OnCenterLockToggled"/>
+
+                                <!-- v2: Label position -->
+                                <ComboBox x:Name="LabelPositionCombo"
+                                          Header="标签位置"
+                                          HorizontalAlignment="Stretch"
+                                          SelectionChanged="OnLabelPositionChanged">
+                                    <ComboBoxItem Content="右侧 (Right)"/>
+                                    <ComboBoxItem Content="左侧 (Left)"/>
+                                    <ComboBoxItem Content="交替 (Alternate)"/>
+                                    <ComboBoxItem Content="隐藏 (Hidden)"/>
+                                </ComboBox>
                             </StackPanel>
                         </Border>
 
@@ -172,7 +226,6 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Save button -->
                         <Border Style="{StaticResource CardPanel}">
                             <StackPanel Spacing="6">
                                 <Button Content="💾 保存配置" Click="OnSaveClick"
@@ -191,7 +244,6 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="4" Padding="4">
 
-                        <!-- Profile management -->
                         <Border Style="{StaticResource CardPanel}">
                             <StackPanel Spacing="6">
                                 <TextBlock Text="游戏配置 Profile" Style="{StaticResource SectionHeader}"/>
@@ -215,7 +267,6 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Import/Export -->
                         <Border Style="{StaticResource CardPanel}">
                             <StackPanel Spacing="6">
                                 <TextBlock Text="导入/导出" Style="{StaticResource SectionHeader}"/>
@@ -233,13 +284,12 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- About -->
                         <Border Style="{StaticResource CardPanel}">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="关于" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="爆炸猎弓准星 v2.0"
+                                <TextBlock Text="爆炸猎弓准星 v2.1"
                                            FontSize="12" Foreground="#AAFFFFFF"/>
-                                <TextBlock Text="UWP Xbox Game Bar Widget&#x0a;Win2D GPU 渲染 + MVVM 架构"
+                                <TextBlock Text="UWP Xbox Game Bar Widget&#x0a;Win2D GPU 渲染 + MVVM 架构&#x0a;中心断裂 · 距离渐变 · 夜间模式 · 锥度效果"
                                            FontSize="10" Foreground="#66AAAAAA"
                                            TextWrapping="Wrap"/>
                             </StackPanel>
@@ -249,7 +299,7 @@
             </PivotItem>
         </Pivot>
 
-        <!-- Status toast (bottom) -->
+        <!-- Status toast -->
         <Border x:Name="StatusToast"
                 VerticalAlignment="Bottom"
                 HorizontalAlignment="Stretch"

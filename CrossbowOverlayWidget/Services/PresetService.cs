@@ -76,7 +76,8 @@ namespace CrossbowOverlayWidget.Services
                 Marks = new List<DistanceMark>(preset.Marks),
                 Style = preset.Style,
                 OffsetX = profile?.OffsetX ?? 0,
-                OffsetY = profile?.OffsetY ?? 0
+                OffsetY = profile?.OffsetY ?? 0,
+                CenterLocked = true
             };
         }
     }
