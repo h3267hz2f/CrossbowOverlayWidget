@@ -25,6 +25,9 @@ namespace CrossbowOverlayWidget
         private SettingsViewModel _viewModel;
         private bool _isUpdating;
 
+        // Debounced auto-save for cross-process refresh
+        private DispatcherTimer _saveDebounceTimer;
+
         public SettingsPage()
         {
             this.InitializeComponent();
@@ -42,6 +45,23 @@ namespace CrossbowOverlayWidget
             _viewModel.ConfigChanged += (s, ev) =>
             {
                 PreviewCanvas.Invalidate();
+                ScheduleAutoSave();
+            };
+
+            // Initialize debounce timer (fires 800ms after last config change)
+            _saveDebounceTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(800)
+            };
+            _saveDebounceTimer.Tick += async (s, ev) =>
+            {
+                _saveDebounceTimer.Stop();
+                try
+                {
+                    await _configService.SaveAsync(config);
+                    await Services.ConfigChangeSignal.NotifyAsync();
+                }
+                catch { /* non-critical */ }
             };
 
             BindUI();
@@ -444,6 +464,20 @@ namespace CrossbowOverlayWidget
                 timer.Stop();
             };
             timer.Start();
+        }
+
+        #endregion
+
+        #region Auto-Save (Cross-process Refresh)
+
+        /// <summary>
+        /// Debounced auto-save: restarts the timer on every config change.
+        /// Only saves + signals after 800ms of inactivity.
+        /// </summary>
+        private void ScheduleAutoSave()
+        {
+            _saveDebounceTimer.Stop();
+            _saveDebounceTimer.Start();
         }
 
         #endregion
