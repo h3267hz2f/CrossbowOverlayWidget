@@ -201,6 +201,46 @@ namespace CrossbowOverlayWidget.ViewModels
             Presets.Clear();
             foreach (var p in _presetService.GetAll()) Presets.Add(p);
             StatusMessage = "New preset created";
+            _ = ConfigChangeSignal.NotifyAsync();
+        }
+
+        public void DuplicateSelectedPreset()
+        {
+            if (_selectedPreset == null) return;
+            // Deep copy the preset
+            var copy = new ReticlePreset
+            {
+                Name = $"{_selectedPreset.Name} (copy)",
+                Scale = _selectedPreset.Scale,
+                MarkSpacing = _selectedPreset.MarkSpacing,
+                Marks = new System.Collections.Generic.List<DistanceMark>(_selectedPreset.Marks),
+                Style = new ReticleStyle
+                {
+                    MajorColor = _selectedPreset.Style.MajorColor,
+                    MinorColor = _selectedPreset.Style.MinorColor,
+                    TextColor = _selectedPreset.Style.TextColor,
+                    CenterLineColor = _selectedPreset.Style.CenterLineColor,
+                    MajorLineWidth = _selectedPreset.Style.MajorLineWidth,
+                    MinorLineWidth = _selectedPreset.Style.MinorLineWidth,
+                    Shape = _selectedPreset.Style.Shape,
+                    OverallOpacity = _selectedPreset.Style.OverallOpacity,
+                    Animation = _selectedPreset.Style.Animation,
+                    AnimationSpeed = _selectedPreset.Style.AnimationSpeed,
+                    CenterGap = _selectedPreset.Style.CenterGap,
+                    GradientColor = _selectedPreset.Style.GradientColor,
+                    NearColor = _selectedPreset.Style.NearColor,
+                    FarColor = _selectedPreset.Style.FarColor,
+                    TextPosition = _selectedPreset.Style.TextPosition,
+                    NightMode = _selectedPreset.Style.NightMode,
+                    TaperFactor = _selectedPreset.Style.TaperFactor,
+                    CenterLocked = _selectedPreset.Style.CenterLocked
+                }
+            };
+            _config.Presets.Add(copy);
+            Presets.Clear();
+            foreach (var p in _presetService.GetAll()) Presets.Add(p);
+            StatusMessage = $"Duplicated \"{_selectedPreset.Name}\"";
+            _ = ConfigChangeSignal.NotifyAsync();
         }
 
         public void DeleteSelectedPreset()
@@ -212,6 +252,7 @@ namespace CrossbowOverlayWidget.ViewModels
             _selectedPreset = Presets.FirstOrDefault();
             LoadFromPreset(_selectedPreset);
             StatusMessage = "Preset deleted";
+            _ = ConfigChangeSignal.NotifyAsync();
         }
 
         public void CreateNewProfile()
@@ -222,6 +263,23 @@ namespace CrossbowOverlayWidget.ViewModels
             StatusMessage = "New profile created";
         }
 
+        public void DeleteSelectedProfile()
+        {
+            if (_selectedProfile == null) return;
+            if (Profiles.Count <= 1)
+            {
+                StatusMessage = "Cannot delete the last profile";
+                return;
+            }
+            var name = _selectedProfile.Name;
+            _profileService.DeleteProfile(_selectedProfile.Id);
+            Profiles.Clear();
+            foreach (var p in _config.Profiles) Profiles.Add(p);
+            _selectedProfile = Profiles.FirstOrDefault();
+            StatusMessage = $"Profile \"{name}\" deleted";
+            _ = ConfigChangeSignal.NotifyAsync();
+        }
+
         public void SwitchProfile()
         {
             if (_selectedProfile == null) return;
@@ -229,6 +287,7 @@ namespace CrossbowOverlayWidget.ViewModels
             LoadFromPreset(_presetService.GetActive());
             ConfigChanged?.Invoke(this, EventArgs.Empty);
             StatusMessage = $"Switched to {_selectedProfile.Name}";
+            _ = ConfigChangeSignal.NotifyAsync();
         }
 
         public void ExecuteCalibration()
@@ -246,6 +305,7 @@ namespace CrossbowOverlayWidget.ViewModels
         public async Task SaveConfig()
         {
             await _configService.SaveAsync(_config);
+            await ConfigChangeSignal.NotifyAsync();
             StatusMessage = "Config saved!";
         }
 
@@ -278,6 +338,7 @@ namespace CrossbowOverlayWidget.ViewModels
                 _profileService.Initialize(_config);
                 Initialize(_config);
                 ConfigChanged?.Invoke(this, EventArgs.Empty);
+                await ConfigChangeSignal.NotifyAsync();
                 StatusMessage = "Config imported!";
             }
             else

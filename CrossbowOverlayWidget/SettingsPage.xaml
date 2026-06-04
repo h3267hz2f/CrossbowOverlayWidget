@@ -56,6 +56,9 @@
                                     <Button Content="新建" Click="OnCreatePreset"
                                             Background="#3300AAFF" Foreground="White"
                                             CornerRadius="4" Padding="10,4" FontSize="11"/>
+                                    <Button Content="复制" Click="OnDuplicatePreset"
+                                            Background="#33AA66FF" Foreground="White"
+                                            CornerRadius="4" Padding="10,4" FontSize="11"/>
                                     <Button Content="删除" Click="OnDeletePreset"
                                             Background="#33FF4444" Foreground="White"
                                             CornerRadius="4" Padding="10,4" FontSize="11"/>
@@ -263,6 +266,9 @@
                                     <Button Content="切换到此 Profile" Click="OnSwitchProfile"
                                             Background="#33FF8800" Foreground="White"
                                             CornerRadius="4" Padding="10,4" FontSize="11"/>
+                                    <Button Content="删除" Click="OnDeleteProfile"
+                                            Background="#33FF4444" Foreground="White"
+                                            CornerRadius="4" Padding="10,4" FontSize="11"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -287,9 +293,9 @@
                         <Border Style="{StaticResource CardPanel}">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="关于" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="爆炸猎弓准星 v2.1"
+                                <TextBlock Text="爆炸猎弓准星 v3.0"
                                            FontSize="12" Foreground="#AAFFFFFF"/>
-                                <TextBlock Text="UWP Xbox Game Bar Widget&#x0a;Win2D GPU 渲染 + MVVM 架构&#x0a;中心断裂 · 距离渐变 · 夜间模式 · 锥度效果"
+                                <TextBlock Text="UWP Xbox Game Bar Widget&#x0a;Win2D GPU 渲染 + MVVM 架构&#x0a;5种形状 · 跨进程刷新 · 内置预设模板 · 校准引擎"
                                            FontSize="10" Foreground="#66AAAAAA"
                                            TextWrapping="Wrap"/>
                             </StackPanel>

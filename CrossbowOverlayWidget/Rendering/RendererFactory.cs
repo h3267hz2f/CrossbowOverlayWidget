@@ -10,8 +10,8 @@ namespace CrossbowOverlayWidget.Rendering
             [ReticleShape.Cross] = new CrosshairRenderer(),
             [ReticleShape.Dot] = new DotRenderer(),
             [ReticleShape.Diamond] = new DiamondRenderer(),
-            [ReticleShape.Circle] = new CrosshairRenderer(),  // reuse cross for now
-            [ReticleShape.TShape] = new CrosshairRenderer(),   // reuse cross for now
+            [ReticleShape.Circle] = new CircleRenderer(),
+            [ReticleShape.TShape] = new TShapeRenderer(),
         };
 
         public IShapeRenderer GetRenderer(ReticleShape shape)

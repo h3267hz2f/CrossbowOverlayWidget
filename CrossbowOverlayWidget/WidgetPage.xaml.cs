@@ -23,6 +23,9 @@ namespace CrossbowOverlayWidget
         private float _animPhase = 0f;
         private bool _hasAnimation = false;
 
+        // Cross-process config refresh polling
+        private DispatcherTimer _pollTimer;
+
         // Game Bar widget reference for settings activation
         private XboxGameBarWidget _widget;
 
@@ -79,11 +82,15 @@ namespace CrossbowOverlayWidget
             UpdateStatusBar();
             EvaluateAnimation();
             ReticleCanvas.Invalidate();
+
+            // Start polling for cross-process config changes
+            StartConfigPolling();
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             StopAnimation();
+            StopConfigPolling();
         }
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -179,5 +186,37 @@ namespace CrossbowOverlayWidget
             EvaluateAnimation();
             ReticleCanvas.Invalidate();
         }
+
+        #region Cross-process Config Polling
+
+        private void StartConfigPolling()
+        {
+            _pollTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
+            _pollTimer.Tick += async (s, e) =>
+            {
+                if (await ConfigChangeSignal.CheckAndConsumeAsync())
+                {
+                    // Config was changed by settings widget — reload
+                    var config = await _configService.LoadAsync();
+                    _presetService.Initialize(config);
+                    _viewModel?.Refresh();
+                    UpdateStatusBar();
+                    EvaluateAnimation();
+                    ReticleCanvas.Invalidate();
+                }
+            };
+            _pollTimer.Start();
+        }
+
+        private void StopConfigPolling()
+        {
+            _pollTimer?.Stop();
+            _pollTimer = null;
+        }
+
+        #endregion
     }
 }

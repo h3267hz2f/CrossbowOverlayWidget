@@ -169,6 +169,14 @@ namespace CrossbowOverlayWidget
             ShowStatus(_viewModel.StatusMessage, false);
         }
 
+        private void OnDuplicatePreset(object sender, RoutedEventArgs e)
+        {
+            _viewModel?.DuplicateSelectedPreset();
+            PresetCombo.ItemsSource = _viewModel.Presets;
+            PresetCombo.SelectedItem = _viewModel.SelectedPreset;
+            ShowStatus(_viewModel.StatusMessage, false);
+        }
+
         private void OnDeletePreset(object sender, RoutedEventArgs e)
         {
             _viewModel?.DeleteSelectedPreset();
@@ -382,6 +390,14 @@ namespace CrossbowOverlayWidget
             _viewModel?.SwitchProfile();
             RefreshStyleUI();
             PopulateCalibrationCombos();
+            ShowStatus(_viewModel.StatusMessage, false);
+        }
+
+        private void OnDeleteProfile(object sender, RoutedEventArgs e)
+        {
+            _viewModel?.DeleteSelectedProfile();
+            ProfileCombo.ItemsSource = _viewModel.Profiles;
+            ProfileCombo.SelectedItem = _viewModel.SelectedProfile;
             ShowStatus(_viewModel.StatusMessage, false);
         }
 
