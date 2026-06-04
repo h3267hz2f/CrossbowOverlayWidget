@@ -1,0 +1,63 @@
+<Page x:Class="CrossbowOverlayWidget.WidgetPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+      Background="Transparent"
+      Loaded="Page_Loaded"
+      Unloaded="Page_Unloaded"
+      SizeChanged="Page_SizeChanged">
+
+    <Grid Background="Transparent">
+        <!-- Win2D Canvas for GPU-accelerated rendering -->
+        <canvas:CanvasControl x:Name="ReticleCanvas"
+                              Draw="OnCanvasDraw"
+                              ClearColor="Transparent"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"/>
+
+        <!-- Status bar overlay (top) -->
+        <StackPanel x:Name="StatusBar"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Margin="6,4,0,0"
+                    Opacity="0.7"
+                    Spacing="6">
+            <TextBlock x:Name="ProfileLabel"
+                       Text=""
+                       FontFamily="Consolas" FontSize="10"
+                       Foreground="#AA88CCFF"/>
+            <TextBlock Text="|"
+                       FontFamily="Consolas" FontSize="10"
+                       Foreground="#66FFFFFF"/>
+            <TextBlock x:Name="PresetLabel"
+                       Text=""
+                       FontFamily="Consolas" FontSize="10"
+                       Foreground="#AACCFFAA"/>
+        </StackPanel>
+
+        <!-- Bottom quick-action buttons -->
+        <StackPanel Orientation="Horizontal"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,6"
+                    Spacing="4"
+                    Opacity="0.6">
+            <Button x:Name="PrevBtn" Content="◀"
+                    FontSize="12" Padding="6,2"
+                    Background="#44000000" Foreground="#CCFFFFFF"
+                    BorderThickness="0" CornerRadius="4"
+                    Click="OnPrevPreset"/>
+            <Button x:Name="ToggleBtn" Content="👁"
+                    FontSize="12" Padding="6,2"
+                    Background="#44000000" Foreground="#CCFFFFFF"
+                    BorderThickness="0" CornerRadius="4"
+                    Click="OnToggleVisibility"/>
+            <Button x:Name="NextBtn" Content="▶"
+                    FontSize="12" Padding="6,2"
+                    Background="#44000000" Foreground="#CCFFFFFF"
+                    BorderThickness="0" CornerRadius="4"
+                    Click="OnNextPreset"/>
+        </StackPanel>
+    </Grid>
+</Page>
