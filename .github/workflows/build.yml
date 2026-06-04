@@ -1,0 +1,88 @@
+name: Build UWP Game Bar Widget
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  SOLUTION_PATH: CrossbowOverlayWidget.sln
+  PROJECT_PATH: CrossbowOverlayWidget\CrossbowOverlayWidget.csproj
+  CONFIGURATION: Release
+  PLATFORM: x64
+
+jobs:
+  build:
+    runs-on: windows-latest
+    name: Build MSIX Package
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '6.0.x'
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v2
+
+    - name: Restore NuGet packages
+      run: nuget restore ${{ env.SOLUTION_PATH }}
+
+    - name: Generate signing certificate
+      shell: pwsh
+      run: |
+        $pfxPath = "${{ github.workspace }}\CrossbowOverlayWidget\CrossbowOverlayWidget_TemporaryKey.pfx"
+        if (-not (Test-Path $pfxPath)) {
+          $cert = New-SelfSignedCertificate `
+            -Type Custom `
+            -Subject "CN=CrossbowOverlay" `
+            -KeyAlgorithm RSA `
+            -KeyLength 2048 `
+            -CertStoreLocation "Cert:\CurrentUser\My" `
+            -NotAfter (Get-Date).AddYears(5)
+          $password = ConvertTo-SecureString -String "GitHubCI" -Force -AsPlainText
+          Export-PfxCertificate -Cert $cert -FilePath $pfxPath -Password $password
+          Remove-Item -Path $cert.PSPath
+          Write-Host "Generated new PFX certificate"
+        } else {
+          Write-Host "PFX certificate already exists"
+        }
+
+    - name: Build MSIX package
+      run: |
+        msbuild ${{ env.SOLUTION_PATH }} `
+          /p:Configuration=${{ env.CONFIGURATION }} `
+          /p:Platform=${{ env.PLATFORM }} `
+          /p:AppxBundle=Never `
+          /p:AppxPackageDir="AppPackages\" `
+          /p:UapAppxPackageBuildMode=StoreUpload `
+          /restore
+
+    - name: Upload MSIX artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: CrossbowOverlayWidget-MSIX
+        path: |
+          **/AppPackages/**/*.msix
+          **/AppPackages/**/*.appx
+          **/AppPackages/**/*.appxbundle
+          **/AppPackages/**/*.msixbundle
+        if-no-files-found: warn
+
+    - name: Upload build logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs
+        path: |
+          **/*.log
+          **/msbuild.binlog
+        if-no-files-found: ignore
