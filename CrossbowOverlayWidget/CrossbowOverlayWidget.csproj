@@ -81,6 +81,8 @@
     <Compile Include="Rendering\CrosshairRenderer.cs" />
     <Compile Include="Rendering\DotRenderer.cs" />
     <Compile Include="Rendering\DiamondRenderer.cs" />
+    <Compile Include="Rendering\CircleRenderer.cs" />
+    <Compile Include="Rendering\TShapeRenderer.cs" />
     <Compile Include="Rendering\RendererFactory.cs" />
     <Compile Include="Rendering\ReticleRenderer.cs" />
     <!-- Services -->
@@ -89,6 +91,7 @@
     <Compile Include="Services\ProfileService.cs" />
     <Compile Include="Services\ImportExportService.cs" />
     <Compile Include="Services\CalibrationEngine.cs" />
+    <Compile Include="Services\ConfigChangeSignal.cs" />
     <!-- ViewModels -->
     <Compile Include="ViewModels\WidgetViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
