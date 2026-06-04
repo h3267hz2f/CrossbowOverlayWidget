@@ -132,8 +132,8 @@
     <PackageReference Include="System.Text.Json">
       <Version>8.0.5</Version>
     </PackageReference>
-    <PackageReference Include="Win2D.uap">
-      <Version>1.28.2</Version>
+    <PackageReference Include="Win2D.uwp">
+      <Version>1.28.3</Version>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm">
       <Version>8.2.2</Version>
