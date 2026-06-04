@@ -64,6 +64,8 @@ jobs:
           /p:AppxBundle=Never `
           /p:AppxPackageDir="AppPackages\" `
           /p:UapAppxPackageBuildMode=StoreUpload `
+          /p:PackageCertificateKeyFile=CrossbowOverlayWidget_TemporaryKey.pfx `
+          /p:PackageCertificatePassword=GitHubCI `
           /restore
 
     - name: Upload MSIX artifact
