@@ -43,7 +43,7 @@
       </uap:VisualElements>
 
       <Extensions>
-        <!-- 主 Widget -->
+        <!-- 主 Widget（包含准星渲染 + 内置设置面板） -->
         <uap3:Extension Category="windows.appExtension">
           <uap3:AppExtension Name="microsoft.gameBarUIExtension"
                              Id="CrossbowOverlayWidget"
@@ -55,43 +55,19 @@
                 <HomeMenuVisible>true</HomeMenuVisible>
                 <PinningSupported>true</PinningSupported>
                 <ActivateAfterInstall>true</ActivateAfterInstall>
-                <SettingsSupported AppExtensionId="CrossbowOverlaySettings" />
                 <Window>
                   <AllowForegroundTransparency>true</AllowForegroundTransparency>
                   <Size>
-                    <Height>600</Height>
-                    <Width>200</Width>
+                    <Height>700</Height>
+                    <Width>320</Width>
                     <MinHeight>200</MinHeight>
-                    <MinWidth>100</MinWidth>
+                    <MinWidth>150</MinWidth>
                     <MaxHeight>1080</MaxHeight>
-                    <MaxWidth>400</MaxWidth>
+                    <MaxWidth>500</MaxWidth>
                   </Size>
                   <ResizeSupported>
                     <Horizontal>true</Horizontal>
                     <Vertical>true</Vertical>
-                  </ResizeSupported>
-                </Window>
-              </GameBarWidget>
-            </uap3:Properties>
-          </uap3:AppExtension>
-        </uap3:Extension>
-        <!-- 设置 Widget -->
-        <uap3:Extension Category="windows.appExtension">
-          <uap3:AppExtension Name="microsoft.gameBarUIExtension"
-                             Id="CrossbowOverlaySettings"
-                             DisplayName="准星设置"
-                             Description="准星刻度设置面板"
-                             PublicFolder="GameBar">
-            <uap3:Properties>
-              <GameBarWidget Type="Settings">
-                <Window>
-                  <Size>
-                    <Height>500</Height>
-                    <Width>380</Width>
-                  </Size>
-                  <ResizeSupported>
-                    <Horizontal>false</Horizontal>
-                    <Vertical>false</Vertical>
                   </ResizeSupported>
                 </Window>
               </GameBarWidget>
